@@ -2,6 +2,8 @@ package Visual;
 
 import Utilities.Tools;
 import Utilities.Tools.Tool;
+import java.time.Clock;
+import java.time.Instant;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Parent;
@@ -11,13 +13,35 @@ import javafx.scene.shape.Polygon;
 public class Tile extends Parent{
     
     public enum State {
-        EMPTY, RAKED
+        EMPTY ('E'), RAKED ('R'), PLANTED ('P'), FENCE ('F');
+        
+        public final char initial;
+        State (char i){
+            initial = i;
+        }
+    };
+    
+    public enum Planted {
+        NOTHING ('N'), TREE ('T'), FLOWER ('F'), CROP ('C');
+        
+        public final char initial;
+        Planted (char i){
+            initial = i;
+        }
     };
     
     public Polygon tile = new Polygon();
     public State currentState;
+    public Planted currentlyPlanted = Planted.NOTHING;
+    public int x_coord, y_coord;
+    public Instant lastPlanted;
+    public Clock clock;
+    
     
     public Tile(Double width, int x, int y){
+        
+        x_coord = x;
+        y_coord = y;
         
         // Centre is 0.0,0.0
         double height = width/4;
@@ -27,14 +51,13 @@ public class Tile extends Parent{
             0.0     , -height/2,
             -width/2, 0.0
             });
+
+        tile.relocate(((width / 2) * (x - y)), ((height / 2) * (x + y)));
         
-        this.tile.setLayoutX(((width / 2) * (x - y)) + 500);
-        this.tile.setLayoutY(((height / 2) * (x + y)) + 500);
         currentState = State.EMPTY;
-        this.tile.setFill(Color.GREEN);
-        this.tile.setStroke(Color.BLACK);
+        this.setStyle(currentState);
         
-        this.getChildren().add(tile);
+        this.getChildren().addAll(tile);
         
         tile.setOnMouseClicked(e -> {
             if (Tools.currentTool != Tool.NULL) useTool();
@@ -53,4 +76,24 @@ public class Tile extends Parent{
                 break;
         }
     }
+    
+    public void moveBy(double midX, double midY){
+        double oldX = tile.getLayoutX(), oldY = tile.getLayoutY();
+        this.tile.relocate(oldX+midX, oldY+midY);
+    }
+    
+    public void setStyle(State s){
+        switch (s){
+            case EMPTY:
+                this.tile.setFill(Color.GREEN);
+                this.tile.setStroke(Color.DARKGREEN);
+                break;
+            case RAKED:
+                this.tile.setFill(Color.BROWN);
+                this.tile.setStroke(Color.BROWN);
+                break;
+                
+        }
+    }
+    
 }
